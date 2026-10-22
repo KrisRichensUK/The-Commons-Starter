@@ -1,0 +1,96 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="description" content="A small, self-hosted starter for public conversation spaces.">
+    <title>The Commons — Starter</title>
+    <link rel="stylesheet" href="styles.css">
+  </head>
+  <body>
+    <header class="site-header">
+      <div class="bar">
+        <a class="brand" href="#top" aria-label="The Commons home">The <em>Commons</em><span>Starter</span></a>
+        <nav aria-label="Primary navigation">
+          <a href="#conversation">Conversation</a>
+          <a href="#prompts">Prompts</a>
+          <a href="#about">About</a>
+        </nav>
+      </div>
+    </header>
+
+    <main id="top" class="wrap">
+      <section class="hero" aria-labelledby="page-title">
+        <div>
+          <p class="eyebrow">OPEN CONVERSATION</p>
+          <h1 id="page-title">A place to think out loud.</h1>
+          <p class="intro">A small, calm space for questions, ideas and useful replies. This starter runs entirely in the browser—no accounts, back end, tracking or third-party services.</p>
+        </div>
+        <aside class="note">
+          <strong>Make it yours.</strong>
+          <p>Replace the sample prompts, connect your own API when you are ready, and set the rules that suit your community.</p>
+          <a href="#about">How this starter works <span aria-hidden="true">→</span></a>
+        </aside>
+      </section>
+
+      <section class="stats" aria-label="Local activity">
+        <div><span>Posts</span><strong id="post-count">—</strong></div>
+        <div><span>Contributors</span><strong id="contributor-count">—</strong></div>
+        <div><span>Open prompts</span><strong id="prompt-count">—</strong></div>
+      </section>
+
+      <section id="conversation" class="conversation" aria-labelledby="conversation-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">THE CONVERSATION</p>
+            <h2 id="conversation-title">Latest messages</h2>
+          </div>
+          <button id="reset-demo" class="quiet-button" type="button">Reset demo</button>
+        </div>
+
+        <form id="post-form" class="composer">
+          <label>
+            <span>Your name</span>
+            <input id="author" name="author" maxlength="48" required placeholder="e.g. River">
+          </label>
+          <label>
+            <span>Topic <small>(optional)</small></span>
+            <input id="topic" name="topic" maxlength="60" placeholder="e.g. Everyday ideas">
+          </label>
+          <label class="message-field">
+            <span>Share a thought</span>
+            <textarea id="message" name="message" maxlength="2000" minlength="2" required placeholder="Write something worth replying to."></textarea>
+          </label>
+          <div class="composer-actions">
+            <p id="replying-to" aria-live="polite"></p>
+            <button type="submit" class="primary-button">Post locally <span aria-hidden="true">→</span></button>
+          </div>
+        </form>
+
+        <div id="feed" class="feed" aria-live="polite"></div>
+      </section>
+
+      <section id="prompts" class="prompts" aria-labelledby="prompts-title">
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">START SOMEWHERE</p>
+            <h2 id="prompts-title">Prompt deck</h2>
+          </div>
+          <button id="random-prompt" class="quiet-button" type="button">Pick one for me</button>
+        </div>
+        <div id="prompt-list" class="prompt-list"></div>
+      </section>
+
+      <section id="about" class="about" aria-labelledby="about-title">
+        <div>
+          <p class="eyebrow">ABOUT THIS STARTER</p>
+          <h2 id="about-title">Small by design.</h2>
+        </div>
+        <p>This is a static HTML, CSS and JavaScript starter. Posts are stored only in the current browser using <code>localStorage</code>. There is no authentication, moderation service, analytics, CMS, BoundProof or AffixIO integration. It is intended as a clean foundation for your own community.</p>
+      </section>
+    </main>
+
+    <footer><span>The Commons Starter</span><span>Build a conversation worth having.</span></footer>
+    <script src="app.js"></script>
+  </body>
+</html>
