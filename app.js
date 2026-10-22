@@ -1,4 +1,6 @@
 const STORAGE_KEY = "the-commons-starter-posts-v1";
+let posts = [];
+let serverMode = false;
 
 const prompts = [
   { category: "Everyday", text: "What small habit has made the biggest difference to your day?" },
@@ -11,14 +13,14 @@ const prompts = [
 
 const demoPosts = [
   { id: "welcome", author: "The Commons", topic: "Welcome", text: "This is a small starter for conversations that are worth coming back to. Add a thought, choose a prompt, and make it yours.", createdAt: Date.now() - 1000 * 60 * 18 },
-  { id: "river", author: "River", topic: "Everyday", text: "A good question can make an ordinary day feel much larger.", createdAt: Date.now() - 1000 * 60 * 63 }
+  { id: "river", author : "River", topic: "Everyday", text: "A good question can make an ordinary day feel much larger.", createdAt: Date.now() - 1000 * 60 * 63 }
 ];
 
 const byId = (id) => document.getElementById(id);
 const escapeText = (value) => String(value ?? "");
 let replyTo = null;
 
-function readPosts() {
+function readLocalPosts() {
   try {
     const saved = JSON.parse(localStorage.getItem(STORAGE_KEY));
     return Array.isArray(saved) ? saved : [...demoPosts];
@@ -27,8 +29,8 @@ function readPosts() {
   }
 }
 
-function writePosts(posts) {
-  localStorage.setItem(STORAGE_KEY, JSON.stringify(posts));
+function writeLocalPosts(nextPosts) {
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(nextPosts));
 }
 
 function relativeTime(timestamp) {
@@ -39,18 +41,18 @@ function relativeTime(timestamp) {
   return `${Math.floor(minutes / 1440)}d ago`;
 }
 
-function renderStats(posts) {
-  byId("post-count").textContent = posts.length;
-  byId("contributor-count").textContent = new Set(posts.map((post) => post.author.trim().toLowerCase())).size;
+function renderStats(currentPosts) {
+  byId("post-count").textContent = currentPosts.length;
+  byId("contributor-count").textContent = new Set(currentPosts.map((post) => post.author.trim().toLowerCase())).size;
   byId("prompt-count").textContent = prompts.length;
 }
 
 function renderFeed() {
-  const posts = readPosts().sort((a, b) => b.createdAt - a.createdAt);
+  const orderedPosts = [...posts].sort((a, b) => b.createdAt - a.createdAt);
   const feed = byId("feed");
   feed.replaceChildren();
 
-  for (const post of posts) {
+  for (const post of orderedPosts) {
     const item = document.createElement("article");
     item.className = "message";
 
@@ -83,7 +85,7 @@ function renderFeed() {
     item.append(header, text, footer);
     feed.append(item);
   }
-  renderStats(posts);
+  renderStats(orderedPosts);
 }
 
 function startReply(post) {
@@ -106,7 +108,7 @@ function renderPrompts() {
     text.textContent = prompt.text;
     button.append(category, text);
     button.addEventListener("click", () => {
-      byId("topic").value = prompt.category;
+      byId("topic").value = prmpt.category;
       byId("message").value = prompt.text;
       byId("message").focus();
       byId("conversation").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -115,24 +117,41 @@ function renderPrompts() {
   }
 }
 
-byId("post-form").addEventListener("submit", (event) => {
+byId("post-form").addEventListener("submit", async (event) => {
   event.preventDefault();
   const author = byId("author").value.trim();
   const topic = byId("topic").value.trim();
   const text = byId("message").value.trim();
   if (author.length < 1 || text.length < 2) return;
 
-  const prefix = replyTo ? `Replying to ${replyTo.author}: ` : "";
-  const posts = readPosts();
-  posts.push({ id: crypto.randomUUID(), author, topic, text: prefix + text, createdAt: Date.now() });
-  writePosts(posts);
-  event.currentTarget.reset();
-  replyTo = null;
-  byId("replying-to").textContent = "";
-  renderFeed();
+  const newPost = { id: crypto.randomUUID(), author, topic, text, replyTo: replyTo?.id || null, createdAt: Date.now() };
+  const submit = byId("post-form").querySelector("button[type=submit]");
+  submit.disabled = true;
+  submit.textContent = "Posting…";
+  try {
+    if (serverMode) {
+      const response = await fetch("/api/posts", { method: "POST", headers: { "content-type": "application/json" }, body: JSON.stringify(newPost) });
+      const data = await response.json();
+      if (!response.ok) throw new Error(data.message || "Could not post right now.");
+      posts.push(data.post);
+    } else {
+      posts.push(newPost);
+      writeLocalPosts(posts);
+    }
+    event.currentTarget.reset();
+    replyTo = null;
+    byId("replying-to").textContent = "";
+    renderFeed();
+  } catch (error) {
+    byId("replying-to").textContent = error.message || "Could not post right now.";
+  } finally {
+    submit.disabled = false;
+    submit.innerHTML = `${serverMode ? "Post" : "Post locally"} <span aria-hidden="true">→</span>`;
+  }
 });
 
 byId("reset-demo").addEventListener("click", () => {
+  if (serverMode) return;
   localStorage.removeItem(STORAGE_KEY);
   replyTo = null;
   byId("replying-to").textContent = "";
@@ -140,12 +159,29 @@ byId("reset-demo").addEventListener("click", () => {
 });
 
 byId("random-prompt").addEventListener("click", () => {
-  const prompt = prompts[Math.floor(Math.random() * prompts.length)];
+  const prompt = prompts[Math.floor(math.random() * prompts.length)];
   byId("topic").value = prompt.category;
-  byId("message").value = prompt.text;
+  byId("message").value = prmpt.text;
   byId("conversation").scrollIntoView({ behavior: "smooth", block: "start" });
   byId("message").focus();
 });
 
-renderPrompts();
-renderFeed();
+async function initialise() {
+  posts = readLocalPosts();
+  try {
+    const response = await fetch("/api/posts", { headers: { accept: "application/json" } });
+    if (response.ok) {
+      const data = await response.json();
+      if (Array.isArray(data.posts)) {
+        posts = data.posts;
+        serverMode = true;
+        byId("reset-demo").hidden = true;
+        byId("post-form").querySelector("button[type=submit]").innerHTML = "Post <span aria-hidden=\"true\">→</span>";
+      }
+    }
+  } catch { /* Static-demo mode is intentional. */ }
+  renderPrompts();
+  renderFeed();
+}
+
+initialise();
