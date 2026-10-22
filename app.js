@@ -13,7 +13,7 @@ const prompts = [
 
 const demoPosts = [
   { id: "welcome", author: "The Commons", topic: "Welcome", text: "This is a small starter for conversations that are worth coming back to. Add a thought, choose a prompt, and make it yours.", createdAt: Date.now() - 1000 * 60 * 18 },
-  { id: "river", author : "River", topic: "Everyday", text: "A good question can make an ordinary day feel much larger.", createdAt: Date.now() - 1000 * 60 * 63 }
+  { id: "river", author: "River", topic: "Everyday", text: "A good question can make an ordinary day feel much larger.", createdAt: Date.now() - 1000 * 60 * 63 }
 ];
 
 const byId = (id) => document.getElementById(id);
@@ -108,7 +108,7 @@ function renderPrompts() {
     text.textContent = prompt.text;
     button.append(category, text);
     button.addEventListener("click", () => {
-      byId("topic").value = prmpt.category;
+      byId("topic").value = prompt.category;
       byId("message").value = prompt.text;
       byId("message").focus();
       byId("conversation").scrollIntoView({ behavior: "smooth", block: "start" });
@@ -159,9 +159,9 @@ byId("reset-demo").addEventListener("click", () => {
 });
 
 byId("random-prompt").addEventListener("click", () => {
-  const prompt = prompts[Math.floor(math.random() * prompts.length)];
+  const prompt = prompts[Math.floor(Math.random() * prompts.length)];
   byId("topic").value = prompt.category;
-  byId("message").value = prmpt.text;
+  byId("message").value = prompt.text;
   byId("conversation").scrollIntoView({ behavior: "smooth", block: "start" });
   byId("message").focus();
 });
